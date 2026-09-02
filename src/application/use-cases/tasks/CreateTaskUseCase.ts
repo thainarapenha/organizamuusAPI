@@ -1,4 +1,5 @@
 import { Task, TaskRecurrence, TaskRoom } from "@/domain/entities/Task";
+import { ApartmentMemberRepository } from "@/domain/repositories/ApartmentMemberRepository";
 import { TaskRepository } from "@/domain/repositories/TaskRepository";
 
 interface CreateTaskRequest {
@@ -21,7 +22,8 @@ interface CreateTaskResponse {
 
 export class CreateTaskUseCase {
   constructor(
-    private readonly taskRepository: TaskRepository
+    private readonly taskRepository: TaskRepository,
+    private readonly apartmentMemberRepository: ApartmentMemberRepository,
   ) {}
 
   async execute(request: CreateTaskRequest): Promise<CreateTaskResponse> {
@@ -56,6 +58,16 @@ export class CreateTaskUseCase {
       throw new Error(
         "Start date cannot be greater than end date."
       );
+    }
+
+    const responsibleMember = await this.apartmentMemberRepository.findByUserId(responsibleMemberId)
+      
+    if (!responsibleMember) {
+      throw new Error("Responsible member not found.");
+    }
+
+    if (responsibleMember.apartmentId != apartmentId) {
+      throw new Error("Responsible member does not belong to the apartment.");
     }
 
     const task = new Task({
