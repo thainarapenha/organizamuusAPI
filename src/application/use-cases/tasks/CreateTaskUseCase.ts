@@ -60,14 +60,26 @@ export class CreateTaskUseCase {
       );
     }
 
-    const responsibleMember = await this.apartmentMemberRepository.findByUserId(responsibleMemberId)
+    const responsibleMember = await this.apartmentMemberRepository.findById(responsibleMemberId)
       
     if (!responsibleMember) {
       throw new Error("Responsible member not found.");
     }
 
-    if (responsibleMember.apartmentId != apartmentId) {
+    if (responsibleMember.apartmentId !== apartmentId) {
       throw new Error("Responsible member does not belong to the apartment.");
+    }
+
+    const createdByMember = await this.apartmentMemberRepository.findById(createdByMemberId);
+
+    if (!createdByMember) {
+      throw new Error("Creator member not found.");
+    }
+
+    if (createdByMember.apartmentId !== apartmentId) {
+      throw new Error(
+        "Creator member does not belong to the apartment.",
+      );
     }
 
     const task = new Task({
