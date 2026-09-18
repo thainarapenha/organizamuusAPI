@@ -5,6 +5,7 @@ import { CreateTaskController } from "@/presentation/controllers/tasks/CreateTas
 import { createTaskRoutes } from "@/presentation/routes/taskRoutes";
 import { prisma } from "@/infrastructure/database/PrismaClient";
 import express from "express";
+import { errorHandler } from "@/presentation/middlewares/errorHandler";
 
 export const app = express();
 
@@ -19,6 +20,7 @@ const createTaskUseCase = new CreateTaskUseCase(taskRepository, apartmentMemberR
 const createTaskController = new CreateTaskController(createTaskUseCase);
 
 app.use(createTaskRoutes(createTaskController));
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.json({

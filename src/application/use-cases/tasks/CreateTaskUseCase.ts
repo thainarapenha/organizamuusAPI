@@ -1,3 +1,4 @@
+import { AppError } from "@/application/errors/AppError";
 import { Task, TaskRecurrence, TaskRoom } from "@/domain/entities/Task";
 import { ApartmentMemberRepository } from "@/domain/repositories/ApartmentMemberRepository";
 import { TaskRepository } from "@/domain/repositories/TaskRepository";
@@ -39,46 +40,54 @@ export class CreateTaskUseCase {
     } = request;
 
     if (!apartmentId) {
-      throw new Error("Apartment is required.");
+      throw new AppError("Apartment is required.", 400);
     }
 
     if (!responsibleMemberId) {
-      throw new Error("Responsible member is required.");
+      throw new AppError("Responsible member is required.", 400);
     }
 
     if (!createdByMemberId) {
-      throw new Error("Creator member is required.");
+      throw new AppError("Creator member is required.", 400);
     }
 
     if (!description.trim()) {
-      throw new Error("Task description is required.");
+      throw new AppError("Task description is required.", 400);
     }
 
     if (startDate > endDate) {
-      throw new Error(
-        "Start date cannot be greater than end date."
+      throw new AppError(
+        "Start date cannot be greater than end date.",
+        400,
       );
     }
 
     const responsibleMember = await this.apartmentMemberRepository.findById(responsibleMemberId)
       
     if (!responsibleMember) {
-      throw new Error("Responsible member not found.");
+      throw new AppError("Responsible member not found.", 404);
     }
 
     if (responsibleMember.apartmentId !== apartmentId) {
-      throw new Error("Responsible member does not belong to the apartment.");
+      throw new AppError(
+        "Responsible member does not belong to the apartment.",
+        400,
+      );
     }
 
-    const createdByMember = await this.apartmentMemberRepository.findById(createdByMemberId);
+    const createdByMember =
+      await this.apartmentMemberRepository.findById(
+        createdByMemberId,
+      );
 
     if (!createdByMember) {
-      throw new Error("Creator member not found.");
+      throw new AppError("Creator member not found.", 404);
     }
 
     if (createdByMember.apartmentId !== apartmentId) {
-      throw new Error(
+      throw new AppError(
         "Creator member does not belong to the apartment.",
+        400,
       );
     }
 

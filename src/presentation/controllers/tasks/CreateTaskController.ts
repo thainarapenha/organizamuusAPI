@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { CreateTaskUseCase } from "@/application/use-cases/tasks/CreateTaskUseCase";
+import { createTaskSchema } from "@/presentation/schemas/tasks/createTaskSchema";
 
 export class CreateTaskController {
   constructor(
@@ -7,28 +8,9 @@ export class CreateTaskController {
   ) {}
 
   async handle(req: Request, res: Response) {
-    const {
-      apartmentId,
-      responsibleMemberId,
-      createdByMemberId,
-      description,
-      room,
-      recurrence,
-      startDate,
-      endDate,
-    } = req.body;
+    const data = createTaskSchema.parse(req.body);
+    const task = await this.createTaskUseCase.execute(data);
 
-    const task = await this.createTaskUseCase.execute({
-      apartmentId,
-      responsibleMemberId,
-      createdByMemberId,
-      description,
-      room,
-      recurrence,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-    });
-
-    return res.status(201).json(task);
+    return res.status(201).json(task)
   }
 }
