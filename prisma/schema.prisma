@@ -14,4 +14,54 @@ model User {
   googleId     String?  @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  apartmentMember ApartmentMember?
+}
+
+model Apartment {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members ApartmentMember[]
+  tasks   Task[]
+}
+
+model ApartmentMember {
+  id          String @id @default(uuid())
+  userId      String @unique
+  apartmentId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id])
+  apartment Apartment @relation(fields: [apartmentId], references: [id])
+
+  responsibleTasks Task[] @relation("TaskResponsibleMember")
+  createdTasks     Task[] @relation("TaskCreatedByMember")
+}
+
+model Task {
+  id                  String @id @default(uuid())
+  apartmentId         String
+  responsibleMemberId String
+  createdByMemberId   String
+
+  room        String
+  description String
+
+  startDate DateTime
+  endDate   DateTime
+
+  recurrence String
+  status     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  apartment         Apartment       @relation(fields: [apartmentId], references: [id])
+  responsibleMember ApartmentMember @relation("TaskResponsibleMember", fields: [responsibleMemberId], references: [id])
+  createdByMember   ApartmentMember @relation("TaskCreatedByMember", fields: [createdByMemberId], references: [id])
 }

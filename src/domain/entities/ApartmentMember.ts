@@ -3,6 +3,7 @@ export interface ApartmentMemberProps {
   userId: string;
   apartmentId: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export class ApartmentMember {
@@ -26,5 +27,9 @@ export class ApartmentMember {
 
   get createdAt(): Date {
     return this.props.createdAt;
+  }
+
+  get updatedAt(): Date {
+    return this.props.updatedAt;
   }
 }

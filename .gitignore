@@ -9,6 +9,10 @@ dist/
 .env.local
 .env.*.local
 
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
 # logs
 *.log
 npm-debug.log*
