@@ -4,9 +4,8 @@ import { ApartmentMemberRepository } from "@/domain/repositories/ApartmentMember
 import { TaskRepository } from "@/domain/repositories/TaskRepository";
 
 interface CreateTaskRequest {
-  apartmentId: string;
+  userId: string;
   responsibleMemberId: string;
-  createdByMemberId: string;
 
   room: TaskRoom;
   description: string;
@@ -29,9 +28,8 @@ export class CreateTaskUseCase {
 
   async execute(request: CreateTaskRequest): Promise<CreateTaskResponse> {
     const {
-      apartmentId,
+      userId,
       responsibleMemberId,
-      createdByMemberId,
       room,
       description,
       startDate,
@@ -39,16 +37,12 @@ export class CreateTaskUseCase {
       recurrence,
     } = request;
 
-    if (!apartmentId) {
-      throw new AppError("Apartment is required.", 400);
+    if (!userId) {
+      throw new AppError("User is required.", 401);
     }
 
     if (!responsibleMemberId) {
       throw new AppError("Responsible member is required.", 400);
-    }
-
-    if (!createdByMemberId) {
-      throw new AppError("Creator member is required.", 400);
     }
 
     if (!description.trim()) {
@@ -62,31 +56,28 @@ export class CreateTaskUseCase {
       );
     }
 
-    const responsibleMember = await this.apartmentMemberRepository.findById(responsibleMemberId)
-      
+    const createdByMember =
+      await this.apartmentMemberRepository.findByUserId(userId);
+
+    if (!createdByMember) {
+      throw new AppError(
+        "User is not associated with an apartment.",
+        403,
+      );
+    }
+
+    const responsibleMember =
+      await this.apartmentMemberRepository.findById(
+        responsibleMemberId,
+      );
+
     if (!responsibleMember) {
       throw new AppError("Responsible member not found.", 404);
     }
 
-    if (responsibleMember.apartmentId !== apartmentId) {
+    if (responsibleMember.apartmentId !== createdByMember.apartmentId) {
       throw new AppError(
         "Responsible member does not belong to the apartment.",
-        400,
-      );
-    }
-
-    const createdByMember =
-      await this.apartmentMemberRepository.findById(
-        createdByMemberId,
-      );
-
-    if (!createdByMember) {
-      throw new AppError("Creator member not found.", 404);
-    }
-
-    if (createdByMember.apartmentId !== apartmentId) {
-      throw new AppError(
-        "Creator member does not belong to the apartment.",
         400,
       );
     }
@@ -94,9 +85,9 @@ export class CreateTaskUseCase {
     const task = new Task({
       id: crypto.randomUUID(),
 
-      apartmentId,
+      apartmentId: createdByMember.apartmentId,
       responsibleMemberId,
-      createdByMemberId,
+      createdByMemberId: createdByMember.id,
 
       room,
       description,
