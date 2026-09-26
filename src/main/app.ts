@@ -20,6 +20,7 @@ import { errorHandler } from "@/presentation/middlewares/errorHandler";
 
 import { authRoutes } from "@/presentation/routes/authRoutes";
 import { taskRoutes } from "@/presentation/routes/taskRoutes";
+import { authMiddleware } from "@/presentation/middlewares/auth";
 
 export const app = express();
 
@@ -34,7 +35,7 @@ const tokenService = new JwtTokenService();
 
 const createTaskUseCase = new CreateTaskUseCase(taskRepository, apartmentMemberRepository);
 
-const listTasksUseCase = new ListTasksUseCase(taskRepository);
+const listTasksUseCase = new ListTasksUseCase(taskRepository, apartmentMemberRepository);
 
 const loginUseCase = new LoginUseCase(userRepository, passwordService, tokenService);
 
@@ -46,10 +47,10 @@ const loginController = new LoginController(loginUseCase);
 
 app.use(authRoutes(loginController));
 
-app.use(taskRoutes(
-  createTaskController,
-  listTasksController,
-));
+app.use(
+  authMiddleware(tokenService),
+  taskRoutes(createTaskController, listTasksController),
+);
 
 app.use(errorHandler);
 
