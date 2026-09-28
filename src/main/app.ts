@@ -3,6 +3,7 @@ import express from "express";
 import { LoginUseCase } from "@/application/use-cases/auth/LoginUseCase";
 import { CreateTaskUseCase } from "@/application/use-cases/tasks/CreateTaskUseCase";
 import { ListTasksUseCase } from "@/application/use-cases/tasks/ListTasksUseCase";
+import { GetTaskUseCase } from "@/application/use-cases/tasks/GetTaskUseCase";
 
 import { BcryptPasswordService } from "@/infrastructure/services/BcryptPasswordService";
 import { JwtTokenService } from "@/infrastructure/services/JwtTokenService";
@@ -15,6 +16,7 @@ import { PrismaUserRepository } from "@/infrastructure/database/PrismaUserReposi
 import { LoginController } from "@/presentation/controllers/auth/LoginController";
 import { CreateTaskController } from "@/presentation/controllers/tasks/CreateTaskController";
 import { ListTasksController } from "@/presentation/controllers/tasks/ListTasksController";
+import { GetTaskController } from "@/presentation/controllers/tasks/GetTaskController";
 
 import { errorHandler } from "@/presentation/middlewares/errorHandler";
 
@@ -37,11 +39,15 @@ const createTaskUseCase = new CreateTaskUseCase(taskRepository, apartmentMemberR
 
 const listTasksUseCase = new ListTasksUseCase(taskRepository, apartmentMemberRepository);
 
+const getTaskUseCase = new GetTaskUseCase(taskRepository, apartmentMemberRepository);
+
 const loginUseCase = new LoginUseCase(userRepository, passwordService, tokenService);
 
 const createTaskController = new CreateTaskController(createTaskUseCase);
 
 const listTasksController = new ListTasksController(listTasksUseCase);
+
+const getTaskController = new GetTaskController(getTaskUseCase);
 
 const loginController = new LoginController(loginUseCase);
 
@@ -49,7 +55,11 @@ app.use(authRoutes(loginController));
 
 app.use(
   authMiddleware(tokenService),
-  taskRoutes(createTaskController, listTasksController),
+  taskRoutes(
+    createTaskController,
+    listTasksController,
+    getTaskController,
+  ),
 );
 
 app.use(errorHandler);
