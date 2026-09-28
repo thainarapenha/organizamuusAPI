@@ -1,44 +1,49 @@
 import { AppError } from "@/application/errors/AppError";
-import { Task, TaskRecurrence, TaskRoom } from "@/domain/entities/Task";
+import {
+  Task,
+  TaskRecurrence,
+  TaskRoom,
+  TaskStatus,
+} from "@/domain/entities/Task";
 import { ApartmentMemberRepository } from "@/domain/repositories/ApartmentMemberRepository";
 import { TaskRepository } from "@/domain/repositories/TaskRepository";
 
-interface CreateTaskRequest {
+interface UpdateTaskRequest {
   userId: string;
-  responsibleMemberId: string;
+  taskId: string;
 
+  responsibleMemberId: string;
   room: TaskRoom;
   description: string;
-
   startDate: Date;
   endDate: Date;
-
   recurrence: TaskRecurrence;
+  status: TaskStatus;
 }
 
-interface CreateTaskResponse {
-  task: Task;
-}
-
-export class CreateTaskUseCase {
+export class UpdateTaskUseCase {
   constructor(
     private readonly taskRepository: TaskRepository,
     private readonly apartmentMemberRepository: ApartmentMemberRepository,
   ) {}
 
-  async execute(request: CreateTaskRequest): Promise<CreateTaskResponse> {
-    const {
-      userId,
-      responsibleMemberId,
-      room,
-      description,
-      startDate,
-      endDate,
-      recurrence,
-    } = request;
-
+  async execute({
+    userId,
+    taskId,
+    responsibleMemberId,
+    room,
+    description,
+    startDate,
+    endDate,
+    recurrence,
+    status,
+  }: UpdateTaskRequest) {
     if (!userId) {
       throw new AppError("User is required.", 401);
+    }
+
+    if (!taskId) {
+      throw new AppError("Task is required.", 400);
     }
 
     if (!responsibleMemberId) {
@@ -56,12 +61,25 @@ export class CreateTaskUseCase {
       );
     }
 
-    const createdByMember =
+    const apartmentMember =
       await this.apartmentMemberRepository.findByUserId(userId);
 
-    if (!createdByMember) {
+    if (!apartmentMember) {
       throw new AppError(
         "User is not associated with an apartment.",
+        403,
+      );
+    }
+
+    const task = await this.taskRepository.findById(taskId);
+
+    if (!task) {
+      throw new AppError("Task not found.", 404);
+    }
+
+    if (task.apartmentId !== apartmentMember.apartmentId) {
+      throw new AppError(
+        "Task does not belong to the user's apartment.",
         403,
       );
     }
@@ -75,19 +93,22 @@ export class CreateTaskUseCase {
       throw new AppError("Responsible member not found.", 404);
     }
 
-    if (responsibleMember.apartmentId !== createdByMember.apartmentId) {
+    if (
+      responsibleMember.apartmentId !==
+      apartmentMember.apartmentId
+    ) {
       throw new AppError(
         "Responsible member does not belong to the apartment.",
         400,
       );
     }
 
-    const task = new Task({
-      id: crypto.randomUUID(),
+    const updatedTask = new Task({
+      id: task.id,
 
-      apartmentId: createdByMember.apartmentId,
+      apartmentId: task.apartmentId,
       responsibleMemberId,
-      createdByMemberId: createdByMember.id,
+      createdByMemberId: task.createdByMemberId,
 
       room,
       description,
@@ -96,16 +117,12 @@ export class CreateTaskUseCase {
       endDate,
 
       recurrence,
-      status: "pending",
+      status,
 
-      createdAt: new Date(),
+      createdAt: task.createdAt,
       updatedAt: new Date(),
     });
 
-    await this.taskRepository.create(task);
-
-    return {
-      task,
-    };
+    return this.taskRepository.update(updatedTask);
   }
 }

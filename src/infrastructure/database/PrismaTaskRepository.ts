@@ -31,9 +31,7 @@ export class PrismaTaskRepository implements TaskRepository {
 
   async findById(id: string): Promise<Task | null> {
     const task = await this.prisma.task.findUnique({
-      where: {
-        id,
-      },
+      where: {id},
     });
 
     if (!task) {
@@ -45,24 +43,54 @@ export class PrismaTaskRepository implements TaskRepository {
 
   async findByApartmentId(apartmentId: string): Promise<Task[]> {
     const tasks = await this.prisma.task.findMany({
-      where: {
-        apartmentId,
-      },
+      where: {apartmentId},
     });
 
     return tasks.map((task) => this.toDomain(task));
   }
 
-  async findByResponsibleMemberId(
-    responsibleMemberId: string
-  ): Promise<Task[]> {
+  async findByResponsibleMemberId(responsibleMemberId: string): Promise<Task[]> {
     const tasks = await this.prisma.task.findMany({
-      where: {
-        responsibleMemberId,
-      },
+      where: {responsibleMemberId},
     });
 
     return tasks.map((task) => this.toDomain(task));
+  }
+
+  async update(task: Task): Promise<Task> {
+    const updatedTask = await this.prisma.task.update({
+      where: {id: task.id},
+      data: {
+        responsibleMemberId: task.responsibleMemberId,
+        room: task.room,
+        description: task.description,
+        startDate: task.startDate,
+        endDate: task.endDate,
+        recurrence: task.recurrence,
+        status: task.status,
+      },
+    });
+
+    return new Task({
+      id: updatedTask.id,
+      apartmentId: updatedTask.apartmentId,
+      responsibleMemberId: updatedTask.responsibleMemberId,
+      createdByMemberId: updatedTask.createdByMemberId,
+      room: updatedTask.room as TaskRoom,
+      description: updatedTask.description,
+      startDate: updatedTask.startDate,
+      endDate: updatedTask.endDate,
+      recurrence: updatedTask.recurrence as TaskRecurrence,
+      status: updatedTask.status as TaskStatus,
+      createdAt: updatedTask.createdAt,
+      updatedAt: updatedTask.updatedAt,
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.task.delete({
+      where: {id},
+    });
   }
 
   private toDomain(task: {

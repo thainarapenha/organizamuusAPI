@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createTaskSchema = z.object({
+export const updateTaskSchema = z.object({
   responsibleMemberId: z.string().min(1),
 
   room: z.enum([
@@ -13,10 +13,16 @@ export const createTaskSchema = z.object({
   description: z.string().trim().min(1),
 
   startDate: z.coerce.date(),
+
   endDate: z.coerce.date(),
 
   recurrence: z.enum([
     "single",
     "weekly",
+  ]),
+
+  status: z.enum([
+    "pending",
+    "completed",
   ]),
 });
