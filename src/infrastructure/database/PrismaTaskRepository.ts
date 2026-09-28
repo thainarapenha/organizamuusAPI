@@ -65,6 +65,38 @@ export class PrismaTaskRepository implements TaskRepository {
     return tasks.map((task) => this.toDomain(task));
   }
 
+  async update(task: Task): Promise<Task> {
+    const updatedTask = await this.prisma.task.update({
+      where: {
+        id: task.id,
+      },
+      data: {
+        responsibleMemberId: task.responsibleMemberId,
+        room: task.room,
+        description: task.description,
+        startDate: task.startDate,
+        endDate: task.endDate,
+        recurrence: task.recurrence,
+        status: task.status,
+      },
+    });
+
+    return new Task({
+      id: updatedTask.id,
+      apartmentId: updatedTask.apartmentId,
+      responsibleMemberId: updatedTask.responsibleMemberId,
+      createdByMemberId: updatedTask.createdByMemberId,
+      room: updatedTask.room as TaskRoom,
+      description: updatedTask.description,
+      startDate: updatedTask.startDate,
+      endDate: updatedTask.endDate,
+      recurrence: updatedTask.recurrence as TaskRecurrence,
+      status: updatedTask.status as TaskStatus,
+      createdAt: updatedTask.createdAt,
+      updatedAt: updatedTask.updatedAt,
+    });
+  }
+
   private toDomain(task: {
     id: string;
     apartmentId: string;

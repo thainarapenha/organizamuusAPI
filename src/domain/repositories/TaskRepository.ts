@@ -8,4 +8,6 @@ export interface TaskRepository {
   findByApartmentId(apartmentId: string): Promise<Task[]>;
 
   findByResponsibleMemberId(responsibleMemberId: string): Promise<Task[]>;
+
+  update(task: Task): Promise<Task>;
 }
