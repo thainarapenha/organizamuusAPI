@@ -10,4 +10,6 @@ export interface TaskRepository {
   findByResponsibleMemberId(responsibleMemberId: string): Promise<Task[]>;
 
   update(task: Task): Promise<Task>;
+
+  delete(id: string): Promise<void>;
 }

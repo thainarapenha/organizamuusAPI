@@ -25,6 +25,8 @@ import { taskRoutes } from "@/presentation/routes/taskRoutes";
 import { authMiddleware } from "@/presentation/middlewares/auth";
 import { UpdateTaskUseCase } from "@/application/use-cases/tasks/UpdateTaskUseCase";
 import { UpdateTaskController } from "@/presentation/controllers/tasks/UpdateTaskController";
+import { DeleteTaskUseCase } from "@/application/use-cases/tasks/DeleteTaskUseCase";
+import { DeleteTaskController } from "@/presentation/controllers/tasks/DeleteTaskController";
 
 export const app = express();
 
@@ -41,12 +43,14 @@ const createTaskUseCase = new CreateTaskUseCase(taskRepository, apartmentMemberR
 const listTasksUseCase = new ListTasksUseCase(taskRepository, apartmentMemberRepository);
 const getTaskUseCase = new GetTaskUseCase(taskRepository, apartmentMemberRepository);
 const updateTaskUseCase = new UpdateTaskUseCase(taskRepository, apartmentMemberRepository);
+const deleteTaskUseCase = new DeleteTaskUseCase(taskRepository, apartmentMemberRepository);
 const loginUseCase = new LoginUseCase(userRepository, passwordService, tokenService);
 
 const createTaskController = new CreateTaskController(createTaskUseCase);
 const listTasksController = new ListTasksController(listTasksUseCase);
 const getTaskController = new GetTaskController(getTaskUseCase);
 const updateTaskController = new UpdateTaskController(updateTaskUseCase);
+const deleteTaskController = new DeleteTaskController(deleteTaskUseCase);
 const loginController = new LoginController(loginUseCase);
 
 app.use(authRoutes(loginController));
@@ -57,7 +61,8 @@ app.use(
     createTaskController,
     listTasksController,
     getTaskController,
-    updateTaskController
+    updateTaskController,
+    deleteTaskController
   ),
 );
 

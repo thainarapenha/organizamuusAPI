@@ -3,12 +3,14 @@ import { CreateTaskController } from "@/presentation/controllers/tasks/CreateTas
 import { ListTasksController } from "../controllers/tasks/ListTasksController";
 import { GetTaskController } from "../controllers/tasks/GetTaskController";
 import { UpdateTaskController } from "../controllers/tasks/UpdateTaskController";
+import { DeleteTaskController } from "../controllers/tasks/DeleteTaskController";
 
 export const taskRoutes = (
   createTaskController: CreateTaskController,
   listTasksController: ListTasksController,
   getTaskController: GetTaskController,
   updateTaskController: UpdateTaskController,
+  deleteTaskController: DeleteTaskController,
 ) => {
   const router = Router();
 
@@ -31,6 +33,14 @@ export const taskRoutes = (
   router.patch("/tasks/:id", async (req, res, next) => {
     try {
       await updateTaskController.handle(req, res);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete("/tasks/:id", async (req, res, next) => {
+    try {
+      await deleteTaskController.handle(req, res);
     } catch (error) {
       next(error);
     }
